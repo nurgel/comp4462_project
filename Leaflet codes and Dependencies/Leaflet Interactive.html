@@ -25,28 +25,36 @@
 
     <body>
         <div id="map" style="height:100vh"></div> <!-- Set Height to 100% of the browser window-->
+
+        <div onclick="click"></div>
         
         <script>
             var map = L.map('map',{preferCanvas: true}).setView([39.5,-98.35],3); //Initialize map, LatLng and initial zoom level
         
-            L.tileLayer.provider('OpenStreetMap.Mapnik').addTo(map); //Add the base map tiles
+            L.tileLayer.provider('OpenStreetMap.Mapnik',{updateWhenIdle: true,updateWhenZooming:true}).addTo(map);
+            L.control.scale({updateWhenIdle: true}).addTo(map);
 
-            L.gridLayer({updateWhenIdle: true, updateWhenZooming: false}).addTo(map);
 
+            //Get the csv file --> On success runs the following command (JavaScript Asynchornus Nature LUL)
+            $.get('./yelp_academic_dataset_business.csv',function(csvString){ 
+                
 
-            $.get('./yelp_academic_dataset_business.csv',function(csvString){
-                data = Papa.parse(csvString, {header:true, dynamicTyping: true, skipEmptyLines: true}).data; //Convert string into array of objects, need to skip empty lines to prevent it from generating a null line
-
-                console.log(data);
-           
-                //data.forEach(element => {
-                //    var marker = L.circleMarker([element.latitude,element.longitude],{radius:8,stroke: false, fillOpacity:0.8, fillColor: '#D32727'}).addTo(map).bindPopup(element.name);
-                //});
+                var data = Papa.parse(csvString, {header:true, dynamicTyping: true, skipEmptyLines: true}).data; 
+                //Convert csv (In string format) into array of objects, need to skip empty lines to prevent it from generating a null line
+                
+                //Building the bubble plot
+                bubbleplot = L.layerGroup();
+                data.forEach(element => {
+                    var marker = L.circleMarker([element.latitude,element.longitude],{radius:8,stroke: false, fillOpacity:0.8, fillColor: '#D32727'}).bindPopup(element.name);
+                    bubbleplot.addLayer(marker);
+                });
+                //Building the heat plot
                 LatLongCount = data.map(a=> [a.latitude,a.longitude,a.review_count/9185]); //Divide review count by 9185(max.val)
-                //console.log(LatLongCount);
-                var heat = L.heatLayer(LatLongCount,{radius: 25}).addTo(map);
-
-            })
+                heat = L.heatLayer(LatLongCount,{radius: 25});
+                heat.addTo(map);
+                bubbleplot.addTo(map);
+                //Working on Filtering and Group Control (Resolve Z-Index Problem).
+           })
         </script>
     </body>
 
