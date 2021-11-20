@@ -3,7 +3,8 @@
         "type": "Feature",
         "properties": {
             "name": "Coors Field",
-            "show_on_map": true
+            "show_on_map": true,
+            "ambience": "Romantic"
         },
         "geometry": {
             "type": "Point",
@@ -17,7 +18,8 @@
         "type": "Feature",
         "properties": {
             "name": "Busch Field",
-            "show_on_map": false
+            "show_on_map": false,
+            "ambience": "Casual"
         },
         "geometry": {
             "type": "Point",
