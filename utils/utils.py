@@ -5,7 +5,7 @@ business = []
 for line in f1.readlines():
     dic = json.loads(line)
     business.append(dic)
-    
+# you don't need to creat a blank file beforehand, just declare the target location
 transformed_json_loc=
 f=open(transformed_json_loc,'w+')
 for obj in business:
