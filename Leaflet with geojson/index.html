@@ -1,5 +1,4 @@
 <!-- An Interactive Map built based on Leaflet.js-->
-
 <!DOCTYPE html>
 <html>
 
@@ -38,26 +37,79 @@
 
         L.tileLayer.provider('OpenStreetMap.Mapnik', { updateWhenIdle: true, updateWhenZooming: true }).addTo(map);
         L.control.scale({ updateWhenIdle: true }).addTo(map);
-        var geojsonLayer;
+        // some var declaration
+        ['RestaurantsTakeOut', 'RestaurantsDelivery', 'Alcohol',
+            'GoodForKids', 'OutdoorSeating', 'RestaurantsAttire',
+            'BusinessAcceptsCreditCards', 'WiFi',
+            'RestaurantsPriceRange2', 'BikeParking', 'NoiseLevel',
+            'BusinessParking', 'RestaurantsReservations',
+            'RestaurantsGoodForGroups', 'HasTV', 'BYOBCorkage',
+            'Corkage', 'RestaurantsTableService', 'Caters', 'Smoking',
+            'Music', 'GoodForDancing', 'ByAppointmentOnly', 'DogsAllowed',
+            'HappyHour', 'WheelchairAccessible', 'BYOB', 'Ambience',
+            'BestNights', 'CoatCheck', 'GoodForMeal', 'BusinessAcceptsBitcoin']
         var filterval_ambience;
-        var geojsonLayer = new L.GeoJSON.AJAX("geo_test.geojson", {
+        var filterval_RestaurantsTakeOut;
+        var filterval_RestaurantsDelivery;
+        var filterval_GoodForKids;
+        var filterval_OutdoorSeating;
+        var filterval_BusinessAcceptsCreditCards;
+        var filterval_WiFi;
+        var filterval_RestaurantsPriceRange2;
+        var filterval_BikeParking;
+        var filterval_NoiseLevel;
+        var filterval_BusinessParking;
+        var filterval_RestaurantsReservations;
+        var filterval_RestaurantsGoodForGroups;
+        var filterval_HasTV;
+        var filterval_BYOBCorkage;
+        var filterval_Corkage;
+        var filterval_RestaurantsTableService;
+        var filterval_Music; // this attr needs some overview to see possible values
+        var filterval_Smoking;
+        var filterval_GoodForDancing;
+        var filterval_ByAppointmentOnly;
+        var filterval_HappyHour;
+        var filterval_WheelchairAccessible;
+        var filterval_BYOB;
+        var filterval_DogsAllowed;
+        var filterval_BestNights;
+        var filterval_CoatCheck;
+        var filterval_GoodForMeal;
+        var filterval_BusinessAcceptsBitcoin;
+
+
+        var False = false;
+        var True = true;
+        var None = false
+        var geojsonLayer = new L.GeoJSON.AJAX("../food_only_fullattr.geojson", {
             pointToLayer: function (feature, latlng) {
-                return L.circleMarker(latlng, { radius: 8, fillOpacity: 0.85 });
+                return L.circleMarker(latlng, { radius: 1, fillOpacity: 0.5 });
             },
             onEachFeature: function (feature, layer) {
                 layer.bindPopup(feature.properties.name);
             }
         })
-        geojsonLayer.addTo(map)
-
+        geojsonLayer.addTo(map);
+        var ambience;
+        var ambience_dict;
         // filter function
         var ambience_filter = function (feature) {
-            if (feature.properties.ambience === filterval_ambience) return true
+            ambience = feature.properties.attributes.Ambience;
+            if (ambience === 'none') return false;
+            try { var ambience_dict = eval('(' + ambience + ')'); }
+            catch (err) { return false }
+            if (ambience_dict[filterval_ambience] === true) return true
             else return false
         }
 
-        var test_filter = function (x) {
-            if (x === filterval_ambience) return true
+        var test_filter = function (ambience) {
+            if (ambience === 'none') return false;
+            try { var ambience = eval('(' + ambience + ')'); }
+            catch (err) { return false }
+
+            if (ambience[filterval_ambience] === true) return true
+            else return false
         }
         function addLayerToMap() {
             //remove the layer from the map entirely
@@ -65,10 +117,10 @@
                 geojsonLayer.remove();
             };
             //add the data layer and style based on attribute. 
-            geojsonLayer = new L.GeoJSON.AJAX("geo_test.geojson", {
+            geojsonLayer = new L.GeoJSON.AJAX("../food_only_fullattr.geojson", {
                 filter: ambience_filter,
                 pointToLayer: function (feature, latlng) {
-                    return L.circleMarker(latlng, { radius: 8, fillOpacity: 0.85 });
+                    return L.circleMarker(latlng, { radius: 1, fillOpacity: 0.2 });
                 },
                 onEachFeature: function (feature, layer) {
                     layer.bindPopup(feature.properties.name);
@@ -86,29 +138,7 @@
 
 
 
-        //Get the csv file --> On success runs the following command (JavaScript Asynchornus Nature LUL)
-
-
-        // $.get('./yelp_dataset_food.csv', function (csvString) {
-
-
-        //     var data = Papa.parse(csvString, { header: true, dynamicTyping: true, skipEmptyLines: true }).data;
-        //     //Convert csv (In string format) into array of objects, need to skip empty lines to prevent it from generating a null line
-
-        //     //Building the bubble plot
-        //     bubbleplot = L.layerGroup();
-        //     data.forEach(element => {
-        //         var marker = L.circleMarker([element.latitude, element.longitude],
-        //             { radius: 4, stroke: false, fillOpacity: 0.2, fillColor: '#D32727' }).bindPopup(element.name);
-        //         bubbleplot.addLayer(marker);
-        //     });
-        //     //Building the heat plot
-        //     LatLongCount = data.map(a => [a.latitude, a.longitude, a.review_count / 9185]); //Divide review count by 9185(max.val)
-        //     heat = L.heatLayer(LatLongCount, { radius: 25 });
-        //     heat.addTo(map);
-        //     bubbleplot.addTo(map);
-        //     //Working on Filtering and Group Control (Resolve Z-Index Problem).
-        // })
+      
 
     </script>
 </body>
