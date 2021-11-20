@@ -52,7 +52,7 @@
 
         // filter function
         var ambience_filter = function (feature) {
-            if (feature.properties.ambience !== filterval_ambience) return true
+            if (feature.properties.ambience === filterval_ambience) return true
             else return false
         }
 
