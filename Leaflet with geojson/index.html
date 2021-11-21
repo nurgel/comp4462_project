@@ -25,8 +25,80 @@
 </head>
 
 <body>
-    Ambience<input type="text" name="fname" value="Romantic" id='Ambience_filter' /><br />
-    <button type="button" id='Ambience_button'>submmit</button>
+    <!-- <div class='ambience' style="float:inline">
+        Ambience<input type="text" name="fname" value="Romantic" id='Ambience_filter' style="display: inline;" />
+        <button type=" button" id='Ambience_button'> submmit</button>
+    </div> -->
+    <div>
+        Ambience
+        <input type="radio" name="ambience_radio" value='romantic'> romantic
+        <input type="radio" name="ambience_radio" value='casual'> casual
+        <input type="radio" name="ambience_radio" value='upscale'> upscale
+        <input type="radio" name="ambience_radio" value='classy'> classy
+        <input type="radio" name="ambience_radio" value='intimate'> intimate
+        <input type="radio" name="ambience_radio" value='hipster'> hipster
+        <input type="radio" name="ambience_radio" value='touristy'> touristy
+        <input type="radio" name="ambience_radio" value='divey'> divey
+        <input type="radio" name="ambience_radio" value='trendy'> trendy
+        <input type="radio" name="ambience_radio" value='all'> all
+
+    </div>
+    <div>
+        Music
+        <input type="radio" name="music_radio" value='dj'> dj
+        <input type="radio" name="music_radio" value='background_music'> background_music
+        <input type="radio" name="music_radio" value='no_music'> no_music
+        <input type="radio" name="music_radio" value='jukebox'> jukebox
+        <input type="radio" name="music_radio" value='live'> live
+        <input type="radio" name="music_radio" value='video'> video
+        <input type="radio" name="music_radio" value='karaoke'> karaoke
+        <input type="radio" name="music_radio" value='all'> all
+
+    </div>
+    <div>
+        PriceRange
+        <input type="radio" name="PriceRange_radio" value='1'> 1
+        <input type="radio" name="PriceRange_radio" value='2'> 2
+        <input type="radio" name="PriceRange_radio" value='3'> 3
+        <input type="radio" name="PriceRange_radio" value='4'> 4
+        <input type="radio" name="PriceRange_radio" value='all'> all
+    </div>
+    <div>
+        Stars
+        <input type="radio" name="stars_radio" value=1.0> 1
+        <input type="radio" name="stars_radio" value=1.5> 1.5
+        <input type="radio" name="stars_radio" value=2.0> 2
+        <input type="radio" name="stars_radio" value=2.5> 2.5
+        <input type="radio" name="stars_radio" value=3.0> 3
+        <input type="radio" name="stars_radio" value=3.5> 3.5
+        <input type="radio" name="stars_radio" value=4.0> 4
+        <input type="radio" name="stars_radio" value=4.5> 4.5
+        <input type="radio" name="stars_radio" value=5.0> 5
+        <input type="radio" name="stars_radio" value='all'> all
+    </div>
+    <div>
+        RestaurantsDelivery
+        <input type="radio" name="RestaurantsDelivery_radio" value="True"> True
+        <input type="radio" name="RestaurantsDelivery_radio" value="False"> False
+        <input type="radio" name="RestaurantsDelivery_radio" value='all'> all
+    </div>
+    <div>
+        GoodForKids
+        <input type="radio" name="GoodForKids_radio" value="True"> True
+        <input type="radio" name="GoodForKids_radio" value="False"> False
+        <input type="radio" name="GoodForKids_radio" value='all'> all
+    </div>
+    <div>
+        ByAppointmentOnly
+        <input type="radio" name="ByAppointmentOnly_radio" value="True"> True
+        <input type="radio" name="ByAppointmentOnly_radio" value="False"> False
+        <input type="radio" name="ByAppointmentOnly_radio" value='all'> all
+    </div>
+    <div style="float:inline">
+        Category<input type="text" name="fname" value="" id='categories_filter' />
+    </div>
+    <button type=" button" id='submmit_button'> submmit</button>
+    <button type=" button" id='initialize_button'>initialize</button>
     <div id="map" style="height:100vh"></div> <!-- Set Height to 100% of the browser window-->
 
     <div onclick="click"></div>
@@ -48,37 +120,38 @@
             'Music', 'GoodForDancing', 'ByAppointmentOnly', 'DogsAllowed',
             'HappyHour', 'WheelchairAccessible', 'BYOB', 'Ambience',
             'BestNights', 'CoatCheck', 'GoodForMeal', 'BusinessAcceptsBitcoin']
-        var filterval_ambience;
-        var filterval_RestaurantsTakeOut;
-        var filterval_RestaurantsDelivery;
-        var filterval_GoodForKids;
-        var filterval_OutdoorSeating;
-        var filterval_BusinessAcceptsCreditCards;
-        var filterval_WiFi;
-        var filterval_RestaurantsPriceRange2;
-        var filterval_BikeParking;
-        var filterval_NoiseLevel;
-        var filterval_BusinessParking;
-        var filterval_RestaurantsReservations;
-        var filterval_RestaurantsGoodForGroups;
-        var filterval_HasTV;
-        var filterval_BYOBCorkage;
-        var filterval_Corkage;
-        var filterval_RestaurantsTableService;
-        var filterval_Music; // this attr needs some overview to see possible values
-        var filterval_Smoking;
-        var filterval_GoodForDancing;
-        var filterval_ByAppointmentOnly;
-        var filterval_HappyHour;
-        var filterval_WheelchairAccessible;
-        var filterval_BYOB;
-        var filterval_DogsAllowed;
-        var filterval_BestNights;
-        var filterval_CoatCheck;
-        var filterval_GoodForMeal;
-        var filterval_BusinessAcceptsBitcoin;
-
-
+        var filterval_ambience = 'all';  // input
+        // var filterval_RestaurantsTakeOut;
+        var filterval_RestaurantsDelivery = 'all'; //t/f
+        var filterval_GoodForKids = 'all';// t/f
+        // var filterval_OutdoorSeating;
+        // var filterval_BusinessAcceptsCreditCards;
+        // var filterval_WiFi;
+        var filterval_RestaurantsPriceRange2 = 'all';// 1 2 3 4 
+        // var filterval_BikeParking;
+        // var filterval_NoiseLevel;
+        // var filterval_BusinessParking;
+        // var filterval_RestaurantsReservations;
+        // var filterval_RestaurantsGoodForGroups;
+        // var filterval_HasTV;
+        // var filterval_BYOBCorkage;
+        // var filterval_Corkage;
+        // var filterval_RestaurantsTableService;
+        var filterval_Music = 'all'; // input
+        // var filterval_Smoking;
+        // var filterval_GoodForDancing;
+        var filterval_ByAppointmentOnly = 'all'; //t/f
+        // var filterval_HappyHour;
+        // var filterval_WheelchairAccessible;
+        // var filterval_BYOB;
+        // var filterval_DogsAllowed;
+        // var filterval_BestNights;
+        // var filterval_CoatCheck;
+        // var filterval_GoodForMeal = 'all';// t/f
+        // var filterval_BusinessAcceptsBitcoin;
+        var filterval_category = 'all';  // input
+        var filterval_stars = 'all';//1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0
+        var filterval_categories = 'all';
         var False = false;
         var True = true;
         var None = false
@@ -93,16 +166,101 @@
         geojsonLayer.addTo(map);
         var ambience;
         var ambience_dict;
+        var music;
+        var music_dict;
+        var price;
+        var stars;
+        var RestaurantsDelivery;
+        var GoodForKids;
+        var ByAppointmentOnly;
+        var categories;
         // filter function
         var ambience_filter = function (feature) {
             ambience = feature.properties.attributes.Ambience;
+            if (filterval_ambience === 'all') return true
             if (ambience === 'none') return false;
-            try { var ambience_dict = eval('(' + ambience + ')'); }
+            try { ambience_dict = eval('(' + ambience + ')'); }
             catch (err) { return false }
             if (ambience_dict[filterval_ambience] === true) return true
             else return false
         }
-
+        var music_filter = function (feature) {
+            if (filterval_Music === 'all') return true
+            music = feature.properties.attributes.Music;
+            if (music === 'none') return false;
+            try { music_dict = eval('(' + music + ')'); }
+            catch (err) { return false }
+            try {
+                if (music_dict[filterval_Music] === true) return true
+                else return false;
+            }
+            catch (err) { return false }
+        }
+        var price_filter = function (feature) {
+            if (filterval_RestaurantsPriceRange2 === 'all') return true
+            price = feature.properties.attributes.RestaurantsPriceRange2;
+            if (price === 'none') return false;
+            try {
+                if (price === filterval_RestaurantsPriceRange2) return true
+                else return false;
+            }
+            catch (err) { return false }
+        }
+        var stars_filter = function (feature) {
+            if (filterval_stars === 'all') return true
+            stars = feature.properties.stars;
+            if (stars === 'none') return false;
+            try {
+                if (stars === filterval_stars) return true
+                else return false;
+            }
+            catch (err) { return false }
+        }
+        var RestaurantsDelivery_filter = function (feature) {
+            if (filterval_RestaurantsDelivery === 'all') return true
+            RestaurantsDelivery = feature.properties.attributes.RestaurantsDelivery;
+            if (RestaurantsDelivery === 'none') return false;
+            try {
+                if (RestaurantsDelivery === filterval_RestaurantsDelivery) return true
+                else return false;
+            }
+            catch (err) { return false }
+        }
+        var GoodForKids_filter = function (feature) {
+            if (filterval_GoodForKids === 'all') return true
+            GoodForKids = feature.properties.attributes.GoodForKids;
+            if (GoodForKids === 'none') return false;
+            try {
+                if (GoodForKids === filterval_GoodForKids) return true
+                else return false;
+            }
+            catch (err) { return false }
+        }
+        var ByAppointmentOnly_filter = function (feature) {
+            if (filterval_ByAppointmentOnly === 'all') return true
+            ByAppointmentOnly = feature.properties.attributes.ByAppointmentOnly;
+            if (ByAppointmentOnly === 'none') return false;
+            try {
+                if (ByAppointmentOnly === filterval_ByAppointmentOnly) return true
+                else return false;
+            }
+            catch (err) { return false }
+        }
+        var categories_filter = function (feature) {
+            if (filterval_categories === 'all') return true
+            categories = feature.properties.categories;
+            try {
+                if (categories.indexOf(filterval_categories) != -1) return true
+                else return false;
+            }
+            catch (err) { return false }
+        }
+        var aggregated_filter = function (feature) {
+            if (ambience_filter(feature) && music_filter(feature) && price_filter(feature)
+                && stars_filter(feature) && RestaurantsDelivery_filter(feature) && GoodForKids_filter(feature)
+                && ByAppointmentOnly_filter(feature) && categories_filter(feature)) return true
+            else return false
+        }
         var test_filter = function (ambience) {
             if (ambience === 'none') return false;
             try { var ambience = eval('(' + ambience + ')'); }
@@ -111,6 +269,7 @@
             if (ambience[filterval_ambience] === true) return true
             else return false
         }
+
         function addLayerToMap() {
             //remove the layer from the map entirely
             if (map.hasLayer(geojsonLayer)) {
@@ -118,7 +277,7 @@
             };
             //add the data layer and style based on attribute. 
             geojsonLayer = new L.GeoJSON.AJAX("../food_only_fullattr.geojson", {
-                filter: ambience_filter,
+                filter: aggregated_filter,
                 pointToLayer: function (feature, latlng) {
                     return L.circleMarker(latlng, { radius: 1, fillOpacity: 0.2 });
                 },
@@ -128,17 +287,78 @@
             }).addTo(map);
 
         }
+        function initialize_allpoints() {
+            if (map.hasLayer(geojsonLayer)) {
+                geojsonLayer.remove();
+            };
+            geojsonLayer = new L.GeoJSON.AJAX("../food_only_fullattr.geojson", {
+                pointToLayer: function (feature, latlng) {
+                    return L.circleMarker(latlng, { radius: 1, fillOpacity: 0.5 });
+                },
+                onEachFeature: function (feature, layer) {
+                    layer.bindPopup(feature.properties.name);
+                }
+            }).addTo(map);
+        }
 
 
 
-        $("#Ambience_button").on("click", function () {
-            filterval_ambience = document.getElementById("Ambience_filter").value;
+        $("#submmit_button").on("click", function () {
+            filterval_ambience = $("input[name='ambience_radio']:checked").val();
+            filterval_Music = $("input[name='music_radio']:checked").val();
+            filterval_RestaurantsPriceRange2 = $("input[name='PriceRange_radio']:checked").val();
+            filterval_stars = $("input[name='stars_radio']:checked").val();
+            if (filterval_stars !== 'all') { filterval_stars = +(filterval_stars) }
+            filterval_RestaurantsDelivery = $("input[name='RestaurantsDelivery_radio']:checked").val();
+            filterval_GoodForKids = $("input[name='GoodForKids_radio']:checked").val();
+            filterval_ByAppointmentOnly = $("input[name='ByAppointmentOnly_radio']:checked").val();
+            filterval_categories = document.getElementById("categories_filter").value;
             addLayerToMap()
+        })
+        $("#initialize_button").on("click", function () {
+            $("input[name='ambience_radio'][value='all']").attr("checked", true);
+            $("input[name='music_radio'][value='all']").attr("checked", true);
+            $("input[name='PriceRange_radio'][value='all']").attr("checked", true);
+            $("input[name='stars_radio'][value='all']").attr("checked", true);
+            $("input[name='RestaurantsDelivery_radio'][value='all']").attr("checked", true);
+            $("input[name='GoodForKids_radio'][value='all']").attr("checked", true);
+            $("input[name='ByAppointmentOnly_radio'][value='all']").attr("checked", true);
+            $("#categories_filter").val("all")
+            filterval_ambience = 'all';
+            filterval_Music = 'all';
+            filterval_RestaurantsPriceRange2 = 'all';
+            filterval_stars = 'all';
+            filterval_RestaurantsDelivery = 'all';
+            filterval_GoodForKids = 'all';
+            filterval_ByAppointmentOnly = 'all';
+            filterval_categories = 'all'
+            initialize_allpoints();
         })
 
 
+        //Get the csv file --> On success runs the following command (JavaScript Asynchornus Nature LUL)
 
-      
+
+        // $.get('./yelp_dataset_food.csv', function (csvString) {
+
+
+        //     var data = Papa.parse(csvString, { header: true, dynamicTyping: true, skipEmptyLines: true }).data;
+        //     //Convert csv (In string format) into array of objects, need to skip empty lines to prevent it from generating a null line
+
+        //     //Building the bubble plot
+        //     bubbleplot = L.layerGroup();
+        //     data.forEach(element => {
+        //         var marker = L.circleMarker([element.latitude, element.longitude],
+        //             { radius: 4, stroke: false, fillOpacity: 0.2, fillColor: '#D32727' }).bindPopup(element.name);
+        //         bubbleplot.addLayer(marker);
+        //     });
+        //     //Building the heat plot
+        //     LatLongCount = data.map(a => [a.latitude, a.longitude, a.review_count / 9185]); //Divide review count by 9185(max.val)
+        //     heat = L.heatLayer(LatLongCount, { radius: 25 });
+        //     heat.addTo(map);
+        //     bubbleplot.addTo(map);
+        //     //Working on Filtering and Group Control (Resolve Z-Index Problem).
+        // })
 
     </script>
 </body>
