@@ -20,6 +20,7 @@
 
     <!-- Import the heatmap plugin-->
     <script src="./leaflet.ajax.min.js"></script>
+    <script src="./leaflet-heat.js"></script>
 
 
 </head>
@@ -99,6 +100,7 @@
     </div>
     <button type=" button" id='submmit_button'> submmit</button>
     <button type=" button" id='initialize_button'>initialize</button>
+    <button type=" button" id='transform_button'>transform</button>
     <div id="map" style="height:100vh"></div> <!-- Set Height to 100% of the browser window-->
 
     <div onclick="click"></div>
@@ -110,54 +112,39 @@
         L.tileLayer.provider('OpenStreetMap.Mapnik', { updateWhenIdle: true, updateWhenZooming: true }).addTo(map);
         L.control.scale({ updateWhenIdle: true }).addTo(map);
         // some var declaration
-        ['RestaurantsTakeOut', 'RestaurantsDelivery', 'Alcohol',
-            'GoodForKids', 'OutdoorSeating', 'RestaurantsAttire',
-            'BusinessAcceptsCreditCards', 'WiFi',
-            'RestaurantsPriceRange2', 'BikeParking', 'NoiseLevel',
-            'BusinessParking', 'RestaurantsReservations',
-            'RestaurantsGoodForGroups', 'HasTV', 'BYOBCorkage',
-            'Corkage', 'RestaurantsTableService', 'Caters', 'Smoking',
-            'Music', 'GoodForDancing', 'ByAppointmentOnly', 'DogsAllowed',
-            'HappyHour', 'WheelchairAccessible', 'BYOB', 'Ambience',
-            'BestNights', 'CoatCheck', 'GoodForMeal', 'BusinessAcceptsBitcoin']
+        // full collection of attributes ['RestaurantsTakeOut', 'RestaurantsDelivery', 'Alcohol',
+        //     'GoodForKids', 'OutdoorSeating', 'RestaurantsAttire',
+        //     'BusinessAcceptsCreditCards', 'WiFi',
+        //     'RestaurantsPriceRange2', 'BikeParking', 'NoiseLevel',
+        //     'BusinessParking', 'RestaurantsReservations',
+        //     'RestaurantsGoodForGroups', 'HasTV', 'BYOBCorkage',
+        //     'Corkage', 'RestaurantsTableService', 'Caters', 'Smoking',
+        //     'Music', 'GoodForDancing', 'ByAppointmentOnly', 'DogsAllowed',
+        //     'HappyHour', 'WheelchairAccessible', 'BYOB', 'Ambience',
+        //     'BestNights', 'CoatCheck', 'GoodForMeal', 'BusinessAcceptsBitcoin']
+
+
+
+        //Sushi/Japnese(pink),Italian(green),Indian(yellow),Korean(blue),Chinese (red),
+        //Mexican(black),French(purple),Middle Eastern(brown), Not specficic/ other(grey)
+
         var filterval_ambience = 'all';  // input
-        // var filterval_RestaurantsTakeOut;
         var filterval_RestaurantsDelivery = 'all'; //t/f
         var filterval_GoodForKids = 'all';// t/f
-        // var filterval_OutdoorSeating;
-        // var filterval_BusinessAcceptsCreditCards;
-        // var filterval_WiFi;
         var filterval_RestaurantsPriceRange2 = 'all';// 1 2 3 4 
-        // var filterval_BikeParking;
-        // var filterval_NoiseLevel;
-        // var filterval_BusinessParking;
-        // var filterval_RestaurantsReservations;
-        // var filterval_RestaurantsGoodForGroups;
-        // var filterval_HasTV;
-        // var filterval_BYOBCorkage;
-        // var filterval_Corkage;
-        // var filterval_RestaurantsTableService;
-        var filterval_Music = 'all'; // input
-        // var filterval_Smoking;
-        // var filterval_GoodForDancing;
+        var filterval_Music = 'all'; // inpu
         var filterval_ByAppointmentOnly = 'all'; //t/f
-        // var filterval_HappyHour;
-        // var filterval_WheelchairAccessible;
-        // var filterval_BYOB;
-        // var filterval_DogsAllowed;
-        // var filterval_BestNights;
-        // var filterval_CoatCheck;
-        // var filterval_GoodForMeal = 'all';// t/f
-        // var filterval_BusinessAcceptsBitcoin;
         var filterval_category = 'all';  // input
         var filterval_stars = 'all';//1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0
         var filterval_categories = 'all';
         var False = false;
         var True = true;
         var None = false
+        var heat_layer;
+        add_heatmap();
         var geojsonLayer = new L.GeoJSON.AJAX("../food_only_fullattr.geojson", {
             pointToLayer: function (feature, latlng) {
-                return L.circleMarker(latlng, { radius: 1, fillOpacity: 0.5 });
+                return L.circleMarker(latlng, { stroke: false, radius: 5, fillOpacity: 0.8, color: test_getcolor(feature) });
             },
             onEachFeature: function (feature, layer) {
                 layer.bindPopup(feature.properties.name);
@@ -261,15 +248,36 @@
                 && ByAppointmentOnly_filter(feature) && categories_filter(feature)) return true
             else return false
         }
-        var test_filter = function (ambience) {
-            if (ambience === 'none') return false;
-            try { var ambience = eval('(' + ambience + ')'); }
-            catch (err) { return false }
+        var test_getcolor = function (feature) {
+            if (feature.properties.categories.includes('Mexican')) {
+                return 'black'
+            }
+            else if (feature.properties.categories.includes('Italian')) {
+                return '#3498DB'//blue
+            }
+            else if (feature.properties.categories.includes('Chinese')) {
+                return '#E74C3C'//red
+            }
+            else if (feature.properties.categories.includes('Indian')) {
+                return 'yellow'
+            }
+            else if (feature.properties.categories.includes('Sushi') || feature.properties.categories.includes('Japnese')) {
+                return '#FADBD8'//pink
+            }
+            else if (feature.properties.categories.includes('Middle Eastern')) {
+                return '#7E5109'//brown
+            }
+            else if (feature.properties.categories.includes('French')) {
+                return '#76448A'//purple
+            }
+            else if (feature.properties.categories.includes('Korean')) {
+                return '#1ABC9C'//green
+            }
 
-            if (ambience[filterval_ambience] === true) return true
-            else return false
+            else { return 'grey' }
         }
-
+        //Sushi/Japnese(pink),Italian(green),Indian(yellow),Korean(blue),Chinese (red),
+        //Mexican(black),French(purple),Middle Eastern(brown), Not specficic/ other(grey)
         function addLayerToMap() {
             //remove the layer from the map entirely
             if (map.hasLayer(geojsonLayer)) {
@@ -279,7 +287,7 @@
             geojsonLayer = new L.GeoJSON.AJAX("../food_only_fullattr.geojson", {
                 filter: aggregated_filter,
                 pointToLayer: function (feature, latlng) {
-                    return L.circleMarker(latlng, { radius: 1, fillOpacity: 0.2 });
+                    return L.circleMarker(latlng, { stroke: false, radius: 5, fillOpacity: 0.8, color: test_getcolor(feature) });
                 },
                 onEachFeature: function (feature, layer) {
                     layer.bindPopup(feature.properties.name);
@@ -293,7 +301,7 @@
             };
             geojsonLayer = new L.GeoJSON.AJAX("../food_only_fullattr.geojson", {
                 pointToLayer: function (feature, latlng) {
-                    return L.circleMarker(latlng, { radius: 1, fillOpacity: 0.5 });
+                    return L.circleMarker(latlng, { stroke: false, radius: 5, fillOpacity: 0.8, color: test_getcolor(feature) });
                 },
                 onEachFeature: function (feature, layer) {
                     layer.bindPopup(feature.properties.name);
@@ -335,31 +343,31 @@
             initialize_allpoints();
         })
 
+        $("#transform_button").on("click", function () {
+            if (map.hasLayer(geojsonLayer)) {
+                geojsonLayer.remove();
+                heat_layer.addTo(map);
+            }
+            else if (map.hasLayer(heat_layer)) {
+                heat_layer.remove();
+                geojsonLayer.addTo(map);
+            }
+            else {
 
+            }
+        })
         //Get the csv file --> On success runs the following command (JavaScript Asynchornus Nature LUL)
 
-
-        // $.get('./yelp_dataset_food.csv', function (csvString) {
-
-
-        //     var data = Papa.parse(csvString, { header: true, dynamicTyping: true, skipEmptyLines: true }).data;
-        //     //Convert csv (In string format) into array of objects, need to skip empty lines to prevent it from generating a null line
-
-        //     //Building the bubble plot
-        //     bubbleplot = L.layerGroup();
-        //     data.forEach(element => {
-        //         var marker = L.circleMarker([element.latitude, element.longitude],
-        //             { radius: 4, stroke: false, fillOpacity: 0.2, fillColor: '#D32727' }).bindPopup(element.name);
-        //         bubbleplot.addLayer(marker);
-        //     });
-        //     //Building the heat plot
-        //     LatLongCount = data.map(a => [a.latitude, a.longitude, a.review_count / 9185]); //Divide review count by 9185(max.val)
-        //     heat = L.heatLayer(LatLongCount, { radius: 25 });
-        //     heat.addTo(map);
-        //     bubbleplot.addTo(map);
-        //     //Working on Filtering and Group Control (Resolve Z-Index Problem).
-        // })
-
+        function add_heatmap() {
+            $.getJSON("../food_only.json", function (data) {
+                //Building the heat plot
+                LatLongCount = data.map(a => [a.latitude, a.longitude, a.review_count / 200]); //Divide review count by 9185(max.val), then ten-fold the intensity
+                heat_layer = L.heatLayer(LatLongCount, { radius: 25 });
+                // heat_layer.addTo(map);
+                //bubbleplot.addTo(map);
+                //Working on Filtering and Group Control (Resolve Z-Index Problem).
+            })
+        }
     </script>
 </body>
 
