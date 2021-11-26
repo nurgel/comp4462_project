@@ -17,8 +17,9 @@
         <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.0/papaparse.min.js"></script>
 
-        <!--Importing Leaflet Ajax to work on GeoJson-->
-        <script src="./leaflet.ajax.min.js"></script>
+        <!--Importing D3 to create dynamic wordclouds-->
+        <script src="https://d3js.org/d3.v3.min.js"></script>
+        <script src="./d3.layout.cloud.js"></script>
 
         <!-- Import the heatmap plugin-->
         <script src="./leaflet-heat.js"></script>
@@ -45,16 +46,29 @@
                     Stars ="all",
                     RestaurantsDelivery="all",
                     GoodForKids="all",
-                    Appointment = "all";
+                    Appointment = "all",
+                    AmbienceTag = "all",
+                    Category = "";
 
                 //Setting up the helper filter function
                 FilterMusic = function(data){
                     if(Music=="all"){
                         return data;
                     }
-                    else 
-                        return data.filter(x => x.properties.Music==Music);
+                    else if (Music!=="none"){
+                        return data.filter(x => x.properties.attributes.Music.includes("'"+Music+"': True"));
                     }
+                    else 
+                        return data.filter(x => x.properties.attributes.Music===Music);
+                }
+
+                FilterCategory = function(data){
+                    if(Category==""){
+                        return data;
+                    }
+                    else
+                        return data.filter(x => x.properties.categories.includes(Category));
+                }
 
                 FilterGood4Kids = function(data){
                 if(GoodForKids=="all"){
@@ -93,7 +107,16 @@
                     return data;
                 }
                 else 
-                    return data.filter(x => x.properties.attributes.RestaurantPriceRange2==PriceRange);
+                    return data.filter(x => x.properties.attributes.RestaurantsPriceRange2==PriceRange);
+                }
+                FilterAmbience = function(data){
+                    if(AmbienceTag=="all"){
+                        return data;
+                    }
+                    else
+                        return data.filter(x => x.properties.attributes.Ambience.includes("'"+AmbienceTag+"': True")); 
+                        //Since Ambience is a string, check whether if it includes the substring "'AmbienceTag': True"
+                        
                 }
 
                 
@@ -103,7 +126,8 @@
                 EditBubbleplot = function(Dataset){
                     bubbleplot.clearLayers();
                     Dataset.forEach(element => {
-                        var marker = L.circleMarker([element.properties.latitude,element.properties.longitude],{radius:8,stroke: false, fillOpacity:0.8, fillColor: Getcolor(element)}).bindPopup(PopUpContent(element));
+                        var marker = L.circleMarker([element.properties.latitude,element.properties.longitude],{radius:8,stroke: false, fillOpacity:0.8, fillColor: Getcolor(element)})
+                        .bindPopup(PopUpContent(element)).on("dblclick",function(element){return element.properties.index});
                         bubbleplot.addLayer(marker);
                     });
                 }
@@ -114,10 +138,11 @@
                     Intermediate = FilterPriceRange(Intermediate);
                     Intermediate = FilterRestaurantDelivery(Intermediate);
                     Intermediate = FilterMusic(Intermediate);
+                    Intermediate = FilterAmbience(Intermediate);
+                    Intermediate = FilterCategory(Intermediate);
                     Result = FilterStars(Intermediate);
                     return Result;
                 }
-            
             
             
                 //Get the csv file --> On success runs the following command (JavaScript Asynchornus Nature LUL)
@@ -129,9 +154,9 @@
                     EditBubbleplot(data);
                     
                     //Building the heat plot
-                    LatLongCount = data.map(a=> [a.properties.latitude,a.properties.longitude,a.properties.review_count/(100)]); //Divide review count by 9185(max.val), then ten-fold the intensity
-                    heat = L.heatLayer(LatLongCount,{radius: 25});
-                    //bubbleplot.addTo(map);
+                    LatLongCount = data.map(a=> [a.properties.latitude,a.properties.longitude,a.properties.review_count/(100)]);
+                    //Divide review count by 9185(max.val), then ten-fold the intensity
+                    heat = L.heatLayer(LatLongCount,{radius: 15});
 
                     //Layer Controls
                     var baseLayers = {
@@ -145,17 +170,32 @@
                     };
 
                     L.control.layers(baseLayers,Overlays).addTo(map);
-                    //Potential Sol to dynamic update
-                    //bubbleplot.remove();
+                    
+
                     $(".RadioButton").on("click",function () {
-                        Ambience = $("input[name='ambience_radio']:checked").val();
+                        AmbienceTag = $("input[name='ambience_radio']:checked").val();
                         Music = $("input[name='music_radio']:checked").val();
                         PriceRange = $("input[name='PriceRange_radio']:checked").val();
                         Stars = $("input[name='stars_radio']:checked").val();
-                        if (Stars !== 'all') { Stars = +(Stars) }
                         RestaurantsDelivery = $("input[name='RestaurantsDelivery_radio']:checked").val();
                         GoodForKids = $("input[name='GoodForKids_radio']:checked").val();
                         Appointment = $("input[name='ByAppointmentOnly_radio']:checked").val();
+                        Category = $("#categories_filter").val()
+
+
+                        Changes = FilterDataset(data);
+                        EditBubbleplot(Changes);
+                    })
+                    
+                    $("#Confirm").on("click",function () {
+                        AmbienceTag = $("input[name='ambience_radio']:checked").val();
+                        Music = $("input[name='music_radio']:checked").val();
+                        PriceRange = $("input[name='PriceRange_radio']:checked").val();
+                        Stars = $("input[name='stars_radio']:checked").val();
+                        RestaurantsDelivery = $("input[name='RestaurantsDelivery_radio']:checked").val();
+                        GoodForKids = $("input[name='GoodForKids_radio']:checked").val();
+                        Appointment = $("input[name='ByAppointmentOnly_radio']:checked").val();
+                        Category = $("#categories_filter").val()
 
                         Changes = FilterDataset(data);
                         EditBubbleplot(Changes);
@@ -202,7 +242,7 @@
                     //Add a section of html code that runs the wordcloud generating function.
                     //HTML Wrapper which calls a Python Script to run a word cloud --> HTML --> JS --> Python
                     + feature.properties.stars +'<p>'
-            } 
+                    }
             </script>
 
             
@@ -236,10 +276,14 @@
 
                 <!--Pop-Up Content-->
                 <div id="Filters" >
+                    <div id="Category" class="Option">
+                        Category:&nbsp;<input type="text" name="fname" value="" id='categories_filter' style="border: 0">
+                        <button id="Confirm">Confirm!</button>
+                      </div>
 
 
                     <!--Radio Buttons of all are initialized to be checked.-->
-                    <div id="Ambience" class="Radio">
+                    <div id="Ambience" class="Option">
                         Ambience:&nbsp;
                         <input type="radio" name="ambience_radio" class="RadioButton" value='romantic'> Romantic
                         <input type="radio" name="ambience_radio" class="RadioButton" value='casual'> Casual
@@ -250,14 +294,14 @@
                         <input type="radio" name="ambience_radio" class="RadioButton" value='touristy'> Touristy
                         <input type="radio" name="ambience_radio" class="RadioButton" value='divey'> Divey
                         <input type="radio" name="ambience_radio" class="RadioButton" value='trendy'> Trendy
-                        <input type="radio" name="ambience_radio" class="RadioButton" value='all'> All
+                        <input type="radio" name="ambience_radio" class="RadioButton" value='all' checked="checked"> All
                 
                     </div>
-                    <div id="Music" class="Radio">
+                    <div id="Music" class="Option">
                         Music:&nbsp;
                         <input type="radio" name="music_radio" value='dj' class="RadioButton"> DJ
                         <input type="radio" name="music_radio" value='background_music' class="RadioButton"> Background&nbsp;Music
-                        <input type="radio" name="music_radio" value='no_music' class="RadioButton"> No&nbsp;Music
+                        <input type="radio" name="music_radio" value='none' class="RadioButton"> No&nbsp;Music
                         <input type="radio" name="music_radio" value='jukebox'class="RadioButton"> Jukebox
                         <input type="radio" name="music_radio" value='live' class="RadioButton"> Live
                         <input type="radio" name="music_radio" value='video' class="RadioButton"> Video
@@ -265,7 +309,7 @@
                         <input type="radio" name="music_radio" value='all' class="RadioButton" checked="checked"> All
                     </div>
 
-                    <div id="PriceRange" class="Radio">
+                    <div id="PriceRange" class="Option">
                         PriceRange:&nbsp;
                         <input type="radio" name="PriceRange_radio" value='1' class="RadioButton"> 1
                         <input type="radio" name="PriceRange_radio" value='2' class="RadioButton"> 2
@@ -274,7 +318,7 @@
                         <input type="radio" name="PriceRange_radio" value='all'class="RadioButton" checked="checked"> All
                     </div>
 
-                    <div id="Stars" class="Radio">
+                    <div id="Stars" class="Option">
                         Stars:&nbsp;
                         <input type="radio" name="stars_radio" value=1.0 class="RadioButton"> 1
                         <input type="radio" name="stars_radio" value=1.5 class="RadioButton"> 1.5
@@ -288,19 +332,19 @@
                         <input type="radio" name="stars_radio" value='all' class="RadioButton" checked="checked"> All
                     </div>
 
-                    <div id="Restaurant Delivery" class="Radio">
+                    <div id="Restaurant Delivery" class="Option">
                         Restaurant&nbsp;Delivery:&nbsp;
                         <input type="radio" name="RestaurantsDelivery_radio" value="True" class="RadioButton"> True
                         <input type="radio" name="RestaurantsDelivery_radio" value="False" class="RadioButton"> False
                         <input type="radio" name="RestaurantsDelivery_radio" value='all' class="RadioButton" checked="checked"> All
                     </div>
-                    <div id="Good For Kids" class="Radio">
+                    <div id="Good For Kids" class="Option">
                         Good&nbsp;For&nbsp;Kids:&nbsp;
                         <input type="radio" name="GoodForKids_radio" value="True" class="RadioButton"> True
                         <input type="radio" name="GoodForKids_radio" value="False" class="RadioButton"> False
                         <input type="radio" name="GoodForKids_radio" value='all' class="RadioButton" checked="checked"> All
                     </div>
-                    <div id="ByAppointmentOnly" class="Radio">
+                    <div id="ByAppointmentOnly" class="Option">
                         By&nbsp;Appointment&nbsp;Only:&nbsp;
                         <input type="radio" name="ByAppointmentOnly_radio" value="True" class="RadioButton"> True
                         <input type="radio" name="ByAppointmentOnly_radio" value="False" class="RadioButton"> False
@@ -361,6 +405,31 @@
         z-index: 2000;
 
     }
+    #Confirm{
+    appearance: none;
+      background-color: #FAFBFC;
+      border: 1px solid rgba(27, 31, 35, 0.15);
+      border-radius: 6px;
+      box-shadow: rgba(27, 31, 35, 0.04) 0 1px 0, rgba(255, 255, 255, 0.25) 0 1px 0 inset;
+      box-sizing: border-box;
+      color: #24292E;
+      cursor: pointer;
+      font-family: -apple-system, system-ui, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+      font-size: 10px;
+      font-weight: 500;
+      line-height: 20px;
+      list-style: none;
+      padding: 3px 3px;
+      position: relative;
+      
+      transition: background-color 0.2s cubic-bezier(0.3, 0, 0.5, 1);
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+      vertical-align: middle;
+      white-space: nowrap;
+      word-wrap: break-word;
+    }
 
     .Button {
       appearance: none;
@@ -378,7 +447,6 @@
       list-style: none;
       padding: 6px 16px;
       position: relative;
-      float: left;
       
       transition: background-color 0.2s cubic-bezier(0.3, 0, 0.5, 1);
       user-select: none;
@@ -393,7 +461,7 @@
       text-decoration: none;
       transition-duration: 0.1s;
     }
-    .Radio{
+    .Option{
         background-color: #FAFBFC;
         border: 1px solid rgba(27, 31, 35, 0.15);
         border-radius: 6px;
