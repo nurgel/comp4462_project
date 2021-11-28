@@ -18,429 +18,555 @@
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.0/papaparse.min.js"></script>
 
-    <!-- Import the heatmap plugin-->
-    <script src="./leaflet.ajax.min.js"></script>
-    <script src="./leaflet-heat.js"></script>
+    <!--Importing D3 to create dynamic wordclouds-->
     <script src="https://d3js.org/d3.v3.min.js"></script>
-    <script src="d3.layout.cloud.js"></script>
+    <script src="./d3.layout.cloud.js"></script>
+
+    <!-- Import the heatmap plugin-->
+    <script src="./leaflet-heat.js"></script>
 
 </head>
 
 <body>
-    <!-- <div class='ambience' style="float:inline">
-        Ambience<input type="text" name="fname" value="Romantic" id='Ambience_filter' style="display: inline;" />
-        <button type=" button" id='Ambience_button'> submmit</button>
-    </div> -->
-    <div>
-        Ambience
-        <input type="radio" name="ambience_radio" value='romantic'> romantic
-        <input type="radio" name="ambience_radio" value='casual'> casual
-        <input type="radio" name="ambience_radio" value='upscale'> upscale
-        <input type="radio" name="ambience_radio" value='classy'> classy
-        <input type="radio" name="ambience_radio" value='intimate'> intimate
-        <input type="radio" name="ambience_radio" value='hipster'> hipster
-        <input type="radio" name="ambience_radio" value='touristy'> touristy
-        <input type="radio" name="ambience_radio" value='divey'> divey
-        <input type="radio" name="ambience_radio" value='trendy'> trendy
-        <input type="radio" name="ambience_radio" value='all'> all
+    <div id="container">
+        <div id="map" style="height: 100vh;width: 50vw;"></div> <!-- Set Height to 100% of the browser window-->
 
-    </div>
-    <div>
-        Music
-        <input type="radio" name="music_radio" value='dj'> dj
-        <input type="radio" name="music_radio" value='background_music'> background_music
-        <input type="radio" name="music_radio" value='no_music'> no_music
-        <input type="radio" name="music_radio" value='jukebox'> jukebox
-        <input type="radio" name="music_radio" value='live'> live
-        <input type="radio" name="music_radio" value='video'> video
-        <input type="radio" name="music_radio" value='karaoke'> karaoke
-        <input type="radio" name="music_radio" value='all'> all
+        <script>
+            var map = L.map('map', { preferCanvas: true }).setView([39.5, -98.35], 3); //Initialize map, LatLng and initial zoom level
 
-    </div>
-    <div>
-        PriceRange
-        <input type="radio" name="PriceRange_radio" value='1'> 1
-        <input type="radio" name="PriceRange_radio" value='2'> 2
-        <input type="radio" name="PriceRange_radio" value='3'> 3
-        <input type="radio" name="PriceRange_radio" value='4'> 4
-        <input type="radio" name="PriceRange_radio" value='all'> all
-    </div>
-    <div>
-        Stars
-        <input type="radio" name="stars_radio" value=1.0> 1
-        <input type="radio" name="stars_radio" value=1.5> 1.5
-        <input type="radio" name="stars_radio" value=2.0> 2
-        <input type="radio" name="stars_radio" value=2.5> 2.5
-        <input type="radio" name="stars_radio" value=3.0> 3
-        <input type="radio" name="stars_radio" value=3.5> 3.5
-        <input type="radio" name="stars_radio" value=4.0> 4
-        <input type="radio" name="stars_radio" value=4.5> 4.5
-        <input type="radio" name="stars_radio" value=5.0> 5
-        <input type="radio" name="stars_radio" value='all'> all
-    </div>
-    <div>
-        RestaurantsDelivery
-        <input type="radio" name="RestaurantsDelivery_radio" value="True"> True
-        <input type="radio" name="RestaurantsDelivery_radio" value="False"> False
-        <input type="radio" name="RestaurantsDelivery_radio" value='all'> all
-    </div>
-    <div>
-        GoodForKids
-        <input type="radio" name="GoodForKids_radio" value="True"> True
-        <input type="radio" name="GoodForKids_radio" value="False"> False
-        <input type="radio" name="GoodForKids_radio" value='all'> all
-    </div>
-    <div>
-        ByAppointmentOnly
-        <input type="radio" name="ByAppointmentOnly_radio" value="True"> True
-        <input type="radio" name="ByAppointmentOnly_radio" value="False"> False
-        <input type="radio" name="ByAppointmentOnly_radio" value='all'> all
-    </div>
-    <div style="float:inline">
-        Category<input type="text" name="fname" value="" id='categories_filter' />
-    </div>
-    <button type=" button" id='submmit_button'> submmit</button>
-    <button type=" button" id='initialize_button'>initialize</button>
-    <button type=" button" id='transform_button'>transform</button>
-    <div id="map" style="height:100vh"></div> <!-- Set Height to 100% of the browser window-->
+            var OpenStreetMap = L.tileLayer.provider('OpenStreetMap.Mapnik', { updateWhenIdle: true, updateWhenZooming: true }),
+                Stadia = L.tileLayer.provider('Stadia.AlidadeSmooth', { updateWhenIdle: true, updateWhenZooming: true });
 
-    <div onclick="click"></div>
+            OpenStreetMap.addTo(map);
 
-    <script>
-        // initialize a map with all points on it
-        var map = L.map('map', { preferCanvas: true }).setView([39.5, -98.35], 3); //Initialize map, LatLng and initial zoom level
+            L.control.scale({ updateWhenIdle: true, position: "bottomright" }).addTo(map);
 
-        L.tileLayer.provider('OpenStreetMap.Mapnik', { updateWhenIdle: true, updateWhenZooming: true }).addTo(map);
-        L.control.scale({ updateWhenIdle: true }).addTo(map);
-        // some var declaration
-        // full collection of attributes ['RestaurantsTakeOut', 'RestaurantsDelivery', 'Alcohol',
-        //     'GoodForKids', 'OutdoorSeating', 'RestaurantsAttire',
-        //     'BusinessAcceptsCreditCards', 'WiFi',
-        //     'RestaurantsPriceRange2', 'BikeParking', 'NoiseLevel',
-        //     'BusinessParking', 'RestaurantsReservations',
-        //     'RestaurantsGoodForGroups', 'HasTV', 'BYOBCorkage',
-        //     'Corkage', 'RestaurantsTableService', 'Caters', 'Smoking',
-        //     'Music', 'GoodForDancing', 'ByAppointmentOnly', 'DogsAllowed',
-        //     'HappyHour', 'WheelchairAccessible', 'BYOB', 'Ambience',
-        //     'BestNights', 'CoatCheck', 'GoodForMeal', 'BusinessAcceptsBitcoin']
+            //Declaring the filter variables
+            var Music = "all",
+                PriceRange = "all",
+                Stars = "all",
+                RestaurantsDelivery = "all",
+                GoodForKids = "all",
+                Appointment = "all",
+                AmbienceTag = "all",
+                Category = "";
+
+            //Setting up the helper filter function
+            FilterMusic = function (data) {
+                if (Music == "all") {
+                    return data;
+                }
+                else if (Music !== "none") {
+                    return data.filter(x => x.properties.attributes.Music.includes("'" + Music + "': True"));
+                }
+                else
+                    return data.filter(x => x.properties.attributes.Music === Music);
+            }
+
+            FilterCategory = function (data) {
+                if (Category == "") {
+                    return data;
+                }
+                else
+                    return data.filter(x => x.properties.categories.includes(Category));
+            }
+
+            FilterGood4Kids = function (data) {
+                if (GoodForKids == "all") {
+                    return data;
+                }
+                else
+                    return data.filter(x => x.properties.attributes.GoodForKids == GoodForKids);
+            }
+
+            FilterStars = function (data) {
+                if (Stars == "all") {
+                    return data;
+                }
+                else
+                    return data.filter(x => x.properties.stars == Stars);
+            }
+
+            FilterRestaurantDelivery = function (data) {
+                if (RestaurantsDelivery == "all") {
+                    return data;
+                }
+                else
+                    return data.filter(x => x.properties.attributes.RestaurantsDelivery == RestaurantsDelivery);
+            }
+
+            FilterAppointment = function (data) {
+                if (Appointment == "all") {
+                    return data;
+                }
+                else
+                    return data.filter(x => x.properties.attributes.ByAppointmentOnly == Appointment);
+            }
+
+            FilterPriceRange = function (data) {
+                if (PriceRange == "all") {
+                    return data;
+                }
+                else
+                    return data.filter(x => x.properties.attributes.RestaurantsPriceRange2 == PriceRange);
+            }
+            FilterAmbience = function (data) {
+                if (AmbienceTag == "all") {
+                    return data;
+                }
+                else
+                    return data.filter(x => x.properties.attributes.Ambience.includes("'" + AmbienceTag + "': True"));
+                //Since Ambience is a string, check whether if it includes the substring "'AmbienceTag': True"
+
+            }
 
 
 
-        //Sushi/Japnese(pink),Italian(green),Indian(yellow),Korean(blue),Chinese (red),
-        //Mexican(black),French(purple),Middle Eastern(brown), Not specficic/ other(grey)
 
-        var filterval_ambience = 'all';  // input
-        var filterval_RestaurantsDelivery = 'all'; //t/f
-        var filterval_GoodForKids = 'all';// t/f
-        var filterval_RestaurantsPriceRange2 = 'all';// 1 2 3 4 
-        var filterval_Music = 'all'; // inpu
-        var filterval_ByAppointmentOnly = 'all'; //t/f
-        var filterval_category = 'all';  // input
-        var filterval_stars = 'all';//1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0
-        var filterval_categories = 'all';
-        var False = false;
-        var True = true;
-        var None = false
-        var heat_layer;
-        add_heatmap();
-        //word cloud test
-        var wordcnt = function (txt) {
-            var hist = {},
-                words = txt.split(/[\s*\.*\,\;\+?\#\|:\-\/\\\[\]\(\)\{\}$%&0-9*]/);
-            for (i in words)
-                if (words[i].length > 1)
-                    hist[words[i]] ? hist[words[i]] += 1 : hist[words[i]] = 1;
-            return hist;
-        };
-        var test = function (obj) {
-            //[{"text":"study","size":40}]
-            //console.log(feature);
-            var business_id = obj.target.feature.properties.business_id;
-            var file_name = business_id + '.txt'
-            // var txt;
-            $.get('../' + file_name, function (data) {
+            //Dynamically updating the Bubbleplot
+            EditBubbleplot = function (Dataset) {
+                bubbleplot.clearLayers();
+                Dataset.forEach(element => {
+                    business_id = element.properties.business_id;
+                    var marker = L.circleMarker([element.properties.latitude, element.properties.longitude], { radius: 8, stroke: false, fillOpacity: 0.8, fillColor: Getcolor(element) })
+                        .bindPopup(PopUpContent2(element))
+                        .on("click", test);
+                    //.on("dblclick", function (element) { return element.properties.index });
+                    bubbleplot.addLayer(marker);
+                });
+            }
 
-                var txt = data;
+            FilterDataset = function (OriginalData) {
+                Intermediate = FilterAppointment(OriginalData);
+                Intermediate = FilterGood4Kids(Intermediate);
+                Intermediate = FilterPriceRange(Intermediate);
+                Intermediate = FilterRestaurantDelivery(Intermediate);
+                Intermediate = FilterMusic(Intermediate);
+                Intermediate = FilterAmbience(Intermediate);
+                Intermediate = FilterCategory(Intermediate);
+                Result = FilterStars(Intermediate);
+                return Result;
+            }
 
-                // console.log(txt);
-                var res = wordcnt(txt);
-                var res2 = Object.keys(res).sort(function (x, y) { return res[x] - res[y]; });
-                res2 = res2.reverse()
-                var res3 = res2.slice(0, 100);
-                frequency_list = res3.map(function (x) {
-                    // max = res[res2[0]]
-                    return { "text": x, "size": res[x] * 10 }
+
+            //Get the csv file --> On success runs the following command (JavaScript Asynchornus Nature LUL)
+            $.getJSON("../food_only_fullattr.geojson", function (data) {
+                console.log(data);
+
+                bubbleplot = L.layerGroup();
+                //Building the bubble plot
+                EditBubbleplot(data);
+
+                //Building the heat plot
+                LatLongCount = data.map(a => [a.properties.latitude, a.properties.longitude, a.properties.review_count / (100)]);
+                //Divide review count by 9185(max.val), then ten-fold the intensity
+                heat = L.heatLayer(LatLongCount, { radius: 15 });
+
+                //Layer Controls
+                var baseLayers = {
+                    "OpenStreetMap": OpenStreetMap,
+                    "Stadia": Stadia
+                };
+
+                var Overlays = {
+                    "Bubbleplot": bubbleplot,
+                    "HeatMap": heat
+                };
+
+                L.control.layers(baseLayers, Overlays).addTo(map);
+
+
+                $(".RadioButton").on("click", function () {
+                    AmbienceTag = $("input[name='ambience_radio']:checked").val();
+                    Music = $("input[name='music_radio']:checked").val();
+                    PriceRange = $("input[name='PriceRange_radio']:checked").val();
+                    Stars = $("input[name='stars_radio']:checked").val();
+                    RestaurantsDelivery = $("input[name='RestaurantsDelivery_radio']:checked").val();
+                    GoodForKids = $("input[name='GoodForKids_radio']:checked").val();
+                    Appointment = $("input[name='ByAppointmentOnly_radio']:checked").val();
+                    Category = $("#categories_filter").val()
+
+
+                    Changes = FilterDataset(data);
+                    EditBubbleplot(Changes);
                 })
 
-                // var frequency_list = [{ "text": "study", "size": 40 }, { "text": "motion", "size": 15 }, { "text": "forces", "size": 10 }, { "text": "electricity", "size": 15 }, { "text": "movement", "size": 10 }, { "text": "relation", "size": 5 }, { "text": "things", "size": 10 }, { "text": "force", "size": 5 }, { "text": "ad", "size": 5 }, { "text": "energy", "size": 85 }, { "text": "living", "size": 5 }, { "text": "nonliving", "size": 5 }, { "text": "laws", "size": 15 }, { "text": "speed", "size": 45 }, { "text": "velocity", "size": 30 }, { "text": "define", "size": 5 }, { "text": "constraints", "size": 5 }, { "text": "universe", "size": 10 }, { "text": "physics", "size": 120 }, { "text": "describing", "size": 5 }, { "text": "matter", "size": 90 }, { "text": "physics-the", "size": 5 }, { "text": "world", "size": 10 }, { "text": "works", "size": 10 }, { "text": "science", "size": 70 }, { "text": "interactions", "size": 30 }, { "text": "studies", "size": 5 }, { "text": "properties", "size": 45 }, { "text": "nature", "size": 40 }, { "text": "branch", "size": 30 }, { "text": "concerned", "size": 25 }, { "text": "source", "size": 40 }, { "text": "google", "size": 10 }, { "text": "defintions", "size": 5 }, { "text": "two", "size": 15 }, { "text": "grouped", "size": 15 }, { "text": "traditional", "size": 15 }, { "text": "fields", "size": 15 }, { "text": "acoustics", "size": 15 }, { "text": "optics", "size": 15 }, { "text": "mechanics", "size": 20 }, { "text": "thermodynamics", "size": 15 }, { "text": "electromagnetism", "size": 15 }, { "text": "modern", "size": 15 }, { "text": "extensions", "size": 15 }, { "text": "thefreedictionary", "size": 15 }, { "text": "interaction", "size": 15 }, { "text": "org", "size": 25 }, { "text": "answers", "size": 5 }, { "text": "natural", "size": 15 }, { "text": "objects", "size": 5 }, { "text": "treats", "size": 10 }, { "text": "acting", "size": 5 }, { "text": "department", "size": 5 }, { "text": "gravitation", "size": 5 }, { "text": "heat", "size": 10 }, { "text": "light", "size": 10 }, { "text": "magnetism", "size": 10 }, { "text": "modify", "size": 5 }, { "text": "general", "size": 10 }, { "text": "bodies", "size": 5 }, { "text": "philosophy", "size": 5 }, { "text": "brainyquote", "size": 5 }, { "text": "words", "size": 5 }, { "text": "ph", "size": 5 }, { "text": "html", "size": 5 }, { "text": "lrl", "size": 5 }, { "text": "zgzmeylfwuy", "size": 5 }, { "text": "subject", "size": 5 }, { "text": "distinguished", "size": 5 }, { "text": "chemistry", "size": 5 }, { "text": "biology", "size": 5 }, { "text": "includes", "size": 5 }, { "text": "radiation", "size": 5 }, { "text": "sound", "size": 5 }, { "text": "structure", "size": 5 }, { "text": "atoms", "size": 5 }, { "text": "including", "size": 10 }, { "text": "atomic", "size": 10 }, { "text": "nuclear", "size": 10 }, { "text": "cryogenics", "size": 10 }, { "text": "solid-state", "size": 10 }, { "text": "particle", "size": 10 }, { "text": "plasma", "size": 10 }, { "text": "deals", "size": 5 }, { "text": "merriam-webster", "size": 5 }, { "text": "dictionary", "size": 10 }, { "text": "analysis", "size": 5 }, { "text": "conducted", "size": 5 }, { "text": "order", "size": 5 }, { "text": "understand", "size": 5 }, { "text": "behaves", "size": 5 }, { "text": "en", "size": 5 }, { "text": "wikipedia", "size": 5 }, { "text": "wiki", "size": 5 }, { "text": "physics-", "size": 5 }, { "text": "physical", "size": 5 }, { "text": "behaviour", "size": 5 }, { "text": "collinsdictionary", "size": 5 }, { "text": "english", "size": 5 }, { "text": "time", "size": 35 }, { "text": "distance", "size": 35 }, { "text": "wheels", "size": 5 }, { "text": "revelations", "size": 5 }, { "text": "minute", "size": 5 }, { "text": "acceleration", "size": 20 }, { "text": "torque", "size": 5 }, { "text": "wheel", "size": 5 }, { "text": "rotations", "size": 5 }, { "text": "resistance", "size": 5 }, { "text": "momentum", "size": 5 }, { "text": "measure", "size": 10 }, { "text": "direction", "size": 10 }, { "text": "car", "size": 5 }, { "text": "add", "size": 5 }, { "text": "traveled", "size": 5 }, { "text": "weight", "size": 5 }, { "text": "electrical", "size": 5 }, { "text": "power", "size": 5 }];
+                $("#Confirm").on("click", function () {
+                    AmbienceTag = $("input[name='ambience_radio']:checked").val();
+                    Music = $("input[name='music_radio']:checked").val();
+                    PriceRange = $("input[name='PriceRange_radio']:checked").val();
+                    Stars = $("input[name='stars_radio']:checked").val();
+                    RestaurantsDelivery = $("input[name='RestaurantsDelivery_radio']:checked").val();
+                    GoodForKids = $("input[name='GoodForKids_radio']:checked").val();
+                    Appointment = $("input[name='ByAppointmentOnly_radio']:checked").val();
+                    Category = $("#categories_filter").val()
 
-                var color = d3.scale.linear()
-                    .domain([0, 1, 2, 3, 4, 5, 6, 10, 15, 20, 100])
-                    .range(["#ddd", "#ccc", "#bbb", "#aaa", "#999", "#888", "#777", "#666", "#555", "#444", "#333", "#222"]);
+                    Changes = FilterDataset(data);
+                    EditBubbleplot(Changes);
+                })
 
-                d3.layout.cloud().size([200, 200])
-                    .words(frequency_list)
-                    .rotate(0)
-                    .fontSize(function (d) { return d.size; })
-                    .on("end", draw)
-                    .start();
-
-                function draw(words) {
-                    d3.select("p").append("svg")
-                        .attr("width", 300)
-                        .attr("height", 200)
-                        .attr("class", "wordcloud")
-                        .append("g")
-                        // without the transform, words words would get cutoff to the left and top, they would
-                        // appear outside of the SVG area
-                        .attr("transform", "translate(100,100)")
-                        .selectAll("text")
-                        .data(words)
-                        .enter().append("text")
-                        .style("font-size", function (d) { return d.size + "px"; })
-                        .style("fill", function (d, i) { return color(i); })
-                        .attr("transform", function (d) {
-                            return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
-                        })
-                        .text(function (d) { return d.text; });
-                }
-            });
-        }
-
-        var PopUpContent = function (feature) {
-            return '<p> —————————————————————————— <p>'
-        }
-        var geojsonLayer = new L.GeoJSON.AJAX("../test.geojson", {
-            pointToLayer: function (feature, latlng) {
-                return L.circleMarker(latlng, { stroke: false, radius: 5, fillOpacity: 0.8, color: test_getcolor(feature) })
-                    .bindPopup(PopUpContent(feature))
-                    .on("click", test);
-                //.bindPopup(PopUpContent(feature)  )
-            },
-            onEachFeature: function (feature, layer) {
-                // layer.bindPopup(PopUpContent(featrue));
-            }
-        })
-        geojsonLayer.addTo(map);
-        var ambience;
-        var ambience_dict;
-        var music;
-        var music_dict;
-        var price;
-        var stars;
-        var RestaurantsDelivery;
-        var GoodForKids;
-        var ByAppointmentOnly;
-        var categories;
-        // filter function
-        var ambience_filter = function (feature) {
-            ambience = feature.properties.attributes.Ambience;
-            if (filterval_ambience === 'all') return true
-            if (ambience === 'none') return false;
-            try { ambience_dict = eval('(' + ambience + ')'); }
-            catch (err) { return false }
-            if (ambience_dict[filterval_ambience] === true) return true
-            else return false
-        }
-        var music_filter = function (feature) {
-            if (filterval_Music === 'all') return true
-            music = feature.properties.attributes.Music;
-            if (music === 'none') return false;
-            try { music_dict = eval('(' + music + ')'); }
-            catch (err) { return false }
-            try {
-                if (music_dict[filterval_Music] === true) return true
-                else return false;
-            }
-            catch (err) { return false }
-        }
-        var price_filter = function (feature) {
-            if (filterval_RestaurantsPriceRange2 === 'all') return true
-            price = feature.properties.attributes.RestaurantsPriceRange2;
-            if (price === 'none') return false;
-            try {
-                if (price === filterval_RestaurantsPriceRange2) return true
-                else return false;
-            }
-            catch (err) { return false }
-        }
-        var stars_filter = function (feature) {
-            if (filterval_stars === 'all') return true
-            stars = feature.properties.stars;
-            if (stars === 'none') return false;
-            try {
-                if (stars === filterval_stars) return true
-                else return false;
-            }
-            catch (err) { return false }
-        }
-        var RestaurantsDelivery_filter = function (feature) {
-            if (filterval_RestaurantsDelivery === 'all') return true
-            RestaurantsDelivery = feature.properties.attributes.RestaurantsDelivery;
-            if (RestaurantsDelivery === 'none') return false;
-            try {
-                if (RestaurantsDelivery === filterval_RestaurantsDelivery) return true
-                else return false;
-            }
-            catch (err) { return false }
-        }
-        var GoodForKids_filter = function (feature) {
-            if (filterval_GoodForKids === 'all') return true
-            GoodForKids = feature.properties.attributes.GoodForKids;
-            if (GoodForKids === 'none') return false;
-            try {
-                if (GoodForKids === filterval_GoodForKids) return true
-                else return false;
-            }
-            catch (err) { return false }
-        }
-        var ByAppointmentOnly_filter = function (feature) {
-            if (filterval_ByAppointmentOnly === 'all') return true
-            ByAppointmentOnly = feature.properties.attributes.ByAppointmentOnly;
-            if (ByAppointmentOnly === 'none') return false;
-            try {
-                if (ByAppointmentOnly === filterval_ByAppointmentOnly) return true
-                else return false;
-            }
-            catch (err) { return false }
-        }
-        var categories_filter = function (feature) {
-            if (filterval_categories === 'all') return true
-            categories = feature.properties.categories;
-            try {
-                if (categories.indexOf(filterval_categories) != -1) return true
-                else return false;
-            }
-            catch (err) { return false }
-        }
-        var aggregated_filter = function (feature) {
-            if (ambience_filter(feature) && music_filter(feature) && price_filter(feature)
-                && stars_filter(feature) && RestaurantsDelivery_filter(feature) && GoodForKids_filter(feature)
-                && ByAppointmentOnly_filter(feature) && categories_filter(feature)) return true
-            else return false
-        }
-        var test_getcolor = function (feature) {
-            if (feature.properties.categories.includes('Mexican')) {
-                return 'black'
-            }
-            else if (feature.properties.categories.includes('Italian')) {
-                return '#3498DB'//blue
-            }
-            else if (feature.properties.categories.includes('Chinese')) {
-                return '#E74C3C'//red
-            }
-            else if (feature.properties.categories.includes('Indian')) {
-                return 'yellow'
-            }
-            else if (feature.properties.categories.includes('Sushi') || feature.properties.categories.includes('Japnese')) {
-                return '#FADBD8'//pink
-            }
-            else if (feature.properties.categories.includes('Middle Eastern')) {
-                return '#7E5109'//brown
-            }
-            else if (feature.properties.categories.includes('French')) {
-                return '#76448A'//purple
-            }
-            else if (feature.properties.categories.includes('Korean')) {
-                return '#1ABC9C'//green
-            }
-
-            else { return 'grey' }
-        }
-        //Sushi/Japnese(pink),Italian(green),Indian(yellow),Korean(blue),Chinese (red),
-        //Mexican(black),French(purple),Middle Eastern(brown), Not specficic/ other(grey)
-        function addLayerToMap() {
-            //remove the layer from the map entirely
-            if (map.hasLayer(geojsonLayer)) {
-                geojsonLayer.remove();
-            };
-            //add the data layer and style based on attribute. 
-            geojsonLayer = new L.GeoJSON.AJAX("../food_only_fullattr.geojson", {
-                filter: aggregated_filter,
-                pointToLayer: function (feature, latlng) {
-                    return L.circleMarker(latlng, { stroke: false, radius: 5, fillOpacity: 0.8, color: test_getcolor(feature) });
-                },
-                onEachFeature: function (feature, layer) {
-                    layer.bindPopup(feature.properties.name);
-                }
-            }).addTo(map);
-
-        }
-        function initialize_allpoints() {
-            if (map.hasLayer(geojsonLayer)) {
-                geojsonLayer.remove();
-            };
-            geojsonLayer = new L.GeoJSON.AJAX("../food_only_fullattr.geojson", {
-                pointToLayer: function (feature, latlng) {
-                    return L.circleMarker(latlng, { stroke: false, radius: 5, fillOpacity: 0.8, color: test_getcolor(feature) });
-                },
-                onEachFeature: function (feature, layer) {
-                    layer.bindPopup(feature.properties.name);
-                }
-            }).addTo(map);
-        }
-
-
-
-        $("#submmit_button").on("click", function () {
-            filterval_ambience = $("input[name='ambience_radio']:checked").val();
-            filterval_Music = $("input[name='music_radio']:checked").val();
-            filterval_RestaurantsPriceRange2 = $("input[name='PriceRange_radio']:checked").val();
-            filterval_stars = $("input[name='stars_radio']:checked").val();
-            if (filterval_stars !== 'all') { filterval_stars = +(filterval_stars) }
-            filterval_RestaurantsDelivery = $("input[name='RestaurantsDelivery_radio']:checked").val();
-            filterval_GoodForKids = $("input[name='GoodForKids_radio']:checked").val();
-            filterval_ByAppointmentOnly = $("input[name='ByAppointmentOnly_radio']:checked").val();
-            filterval_categories = document.getElementById("categories_filter").value;
-            addLayerToMap()
-        })
-        $("#initialize_button").on("click", function () {
-            $("input[name='ambience_radio'][value='all']").attr("checked", true);
-            $("input[name='music_radio'][value='all']").attr("checked", true);
-            $("input[name='PriceRange_radio'][value='all']").attr("checked", true);
-            $("input[name='stars_radio'][value='all']").attr("checked", true);
-            $("input[name='RestaurantsDelivery_radio'][value='all']").attr("checked", true);
-            $("input[name='GoodForKids_radio'][value='all']").attr("checked", true);
-            $("input[name='ByAppointmentOnly_radio'][value='all']").attr("checked", true);
-            $("#categories_filter").val("all")
-            filterval_ambience = 'all';
-            filterval_Music = 'all';
-            filterval_RestaurantsPriceRange2 = 'all';
-            filterval_stars = 'all';
-            filterval_RestaurantsDelivery = 'all';
-            filterval_GoodForKids = 'all';
-            filterval_ByAppointmentOnly = 'all';
-            filterval_categories = 'all'
-            initialize_allpoints();
-        })
-
-        $("#transform_button").on("click", function () {
-            if (map.hasLayer(geojsonLayer)) {
-                geojsonLayer.remove();
-                heat_layer.addTo(map);
-            }
-            else if (map.hasLayer(heat_layer)) {
-                heat_layer.remove();
-                geojsonLayer.addTo(map);
-            }
-            else {
-
-            }
-        })
-        //Get the csv file --> On success runs the following command (JavaScript Asynchornus Nature LUL)
-
-        function add_heatmap() {
-            $.getJSON("../food_only.json", function (data) {
-                //Building the heat plot
-                LatLongCount = data.map(a => [a.latitude, a.longitude, a.review_count / 200]); //Divide review count by 9185(max.val), then ten-fold the intensity
-                heat_layer = L.heatLayer(LatLongCount, { radius: 25 });
-                // heat_layer.addTo(map);
-                //bubbleplot.addTo(map);
-                //Working on Filtering and Group Control (Resolve Z-Index Problem).
             })
-        }
-    </script>
+
+            //Function prototype for obtaining colours, credit to Siyuan
+            var Getcolor = function (feature) {
+                if (feature.properties.categories.includes('Mexican')) {
+                    return 'black'
+                }
+                else if (feature.properties.categories.includes('Italian')) {
+                    return '#3498DB'//blue
+                }
+                else if (feature.properties.categories.includes('Chinese')) {
+                    return '#E74C3C'//red
+                }
+                else if (feature.properties.categories.includes('Indian')) {
+                    return 'yellow'
+                }
+                else if (feature.properties.categories.includes('Sushi') || feature.properties.categories.includes('Japnese')) {
+                    return '#FADBD8'//pink
+                }
+                else if (feature.properties.categories.includes('Middle Eastern')) {
+                    return '#7E5109'//brown
+                }
+                else if (feature.properties.categories.includes('French')) {
+                    return '#76448A'//purple
+                }
+                else if (feature.properties.categories.includes('Korean')) {
+                    return '#1ABC9C'//green
+                }
+
+                else { return 'grey' }
+            }
+
+            //Function prototype to generate
+            var PopUpContent = function (feature) {
+                //Returning a String (In HTML Code format)
+                return '<p>Name: ' + feature.properties.name +
+                    '<br /> Address: ' + feature.properties.address + '<br />Stars: '
+                    //+ Adding a picture that's done alrdy
+                    //Add a section of html code that runs the wordcloud generating function.
+                    //HTML Wrapper which calls a Python Script to run a word cloud --> HTML --> JS --> Python
+                    + feature.properties.stars + '<p>'
+            }
+            //Test
+            var wordcnt = function (txt) {
+                var hist = {},
+                    words = txt.split(/[\s*\.*\,\;\+?\#\|:\-\/\\\[\]\(\)\{\}$%&0-9*]/);
+                for (i in words)
+                    if (words[i].length > 1)
+                        hist[words[i]] ? hist[words[i]] += 1 : hist[words[i]] = 1;
+                return hist;
+            };
+            var test = function (obj) {
+                //[{"text":"study","size":40}]
+                console.log(business_id);
+                // var business_id = obj.target.feature.properties.business_id;
+                var file_name = business_id + '.txt'
+                // var txt;
+                $.get('../business_reviews/' + file_name, function (data) {
+
+                    var txt = data;
+
+                    // console.log(txt);
+                    var res = wordcnt(txt);
+                    //console.log(res);
+                    var res2 = Object.keys(res).sort(function (x, y) { return res[x] - res[y]; });
+                    res2 = res2.reverse()
+                    var res3 = res2.slice(0, 100);
+                    //console.log(res3);
+                    frequency_list = res3.map(function (x) {
+                        // max = res[res2[0]]
+                        return { "text": x, "size": res[x] * 1 }
+                    })
+                    //console.log(frequency_list);
+                    // var frequency_list = [{ "text": "study", "size": 40 }, { "text": "motion", "size": 15 }, { "text": "forces", "size": 10 }, { "text": "electricity", "size": 15 }, { "text": "movement", "size": 10 }, { "text": "relation", "size": 5 }, { "text": "things", "size": 10 }, { "text": "force", "size": 5 }, { "text": "ad", "size": 5 }, { "text": "energy", "size": 85 }, { "text": "living", "size": 5 }, { "text": "nonliving", "size": 5 }, { "text": "laws", "size": 15 }, { "text": "speed", "size": 45 }, { "text": "velocity", "size": 30 }, { "text": "define", "size": 5 }, { "text": "constraints", "size": 5 }, { "text": "universe", "size": 10 }, { "text": "physics", "size": 120 }, { "text": "describing", "size": 5 }, { "text": "matter", "size": 90 }, { "text": "physics-the", "size": 5 }, { "text": "world", "size": 10 }, { "text": "works", "size": 10 }, { "text": "science", "size": 70 }, { "text": "interactions", "size": 30 }, { "text": "studies", "size": 5 }, { "text": "properties", "size": 45 }, { "text": "nature", "size": 40 }, { "text": "branch", "size": 30 }, { "text": "concerned", "size": 25 }, { "text": "source", "size": 40 }, { "text": "google", "size": 10 }, { "text": "defintions", "size": 5 }, { "text": "two", "size": 15 }, { "text": "grouped", "size": 15 }, { "text": "traditional", "size": 15 }, { "text": "fields", "size": 15 }, { "text": "acoustics", "size": 15 }, { "text": "optics", "size": 15 }, { "text": "mechanics", "size": 20 }, { "text": "thermodynamics", "size": 15 }, { "text": "electromagnetism", "size": 15 }, { "text": "modern", "size": 15 }, { "text": "extensions", "size": 15 }, { "text": "thefreedictionary", "size": 15 }, { "text": "interaction", "size": 15 }, { "text": "org", "size": 25 }, { "text": "answers", "size": 5 }, { "text": "natural", "size": 15 }, { "text": "objects", "size": 5 }, { "text": "treats", "size": 10 }, { "text": "acting", "size": 5 }, { "text": "department", "size": 5 }, { "text": "gravitation", "size": 5 }, { "text": "heat", "size": 10 }, { "text": "light", "size": 10 }, { "text": "magnetism", "size": 10 }, { "text": "modify", "size": 5 }, { "text": "general", "size": 10 }, { "text": "bodies", "size": 5 }, { "text": "philosophy", "size": 5 }, { "text": "brainyquote", "size": 5 }, { "text": "words", "size": 5 }, { "text": "ph", "size": 5 }, { "text": "html", "size": 5 }, { "text": "lrl", "size": 5 }, { "text": "zgzmeylfwuy", "size": 5 }, { "text": "subject", "size": 5 }, { "text": "distinguished", "size": 5 }, { "text": "chemistry", "size": 5 }, { "text": "biology", "size": 5 }, { "text": "includes", "size": 5 }, { "text": "radiation", "size": 5 }, { "text": "sound", "size": 5 }, { "text": "structure", "size": 5 }, { "text": "atoms", "size": 5 }, { "text": "including", "size": 10 }, { "text": "atomic", "size": 10 }, { "text": "nuclear", "size": 10 }, { "text": "cryogenics", "size": 10 }, { "text": "solid-state", "size": 10 }, { "text": "particle", "size": 10 }, { "text": "plasma", "size": 10 }, { "text": "deals", "size": 5 }, { "text": "merriam-webster", "size": 5 }, { "text": "dictionary", "size": 10 }, { "text": "analysis", "size": 5 }, { "text": "conducted", "size": 5 }, { "text": "order", "size": 5 }, { "text": "understand", "size": 5 }, { "text": "behaves", "size": 5 }, { "text": "en", "size": 5 }, { "text": "wikipedia", "size": 5 }, { "text": "wiki", "size": 5 }, { "text": "physics-", "size": 5 }, { "text": "physical", "size": 5 }, { "text": "behaviour", "size": 5 }, { "text": "collinsdictionary", "size": 5 }, { "text": "english", "size": 5 }, { "text": "time", "size": 35 }, { "text": "distance", "size": 35 }, { "text": "wheels", "size": 5 }, { "text": "revelations", "size": 5 }, { "text": "minute", "size": 5 }, { "text": "acceleration", "size": 20 }, { "text": "torque", "size": 5 }, { "text": "wheel", "size": 5 }, { "text": "rotations", "size": 5 }, { "text": "resistance", "size": 5 }, { "text": "momentum", "size": 5 }, { "text": "measure", "size": 10 }, { "text": "direction", "size": 10 }, { "text": "car", "size": 5 }, { "text": "add", "size": 5 }, { "text": "traveled", "size": 5 }, { "text": "weight", "size": 5 }, { "text": "electrical", "size": 5 }, { "text": "power", "size": 5 }];
+
+                    var color = d3.scale.linear()
+                        .domain([0, 1, 2, 3, 4, 5, 6, 10, 15, 20, 100])
+                        .range(["#ddd", "#ccc", "#bbb", "#aaa", "#999", "#888", "#777", "#666", "#555", "#444", "#333", "#222"]);
+
+                    d3.layout.cloud().size([200, 200])
+                        .words(frequency_list)
+                        .rotate(0)
+                        .fontSize(function (d) { return d.size; })
+                        .on("end", draw)
+                        .start();
+
+                    function draw(words) {
+                        d3.select("p").append("svg")
+                            .attr("width", 300)
+                            .attr("height", 200)
+                            .attr("class", "wordcloud")
+                            .append("g")
+                            // without the transform, words words would get cutoff to the left and top, they would
+                            // appear outside of the SVG area
+                            .attr("transform", "translate(100,100)")
+                            .selectAll("text")
+                            .data(words)
+                            .enter().append("text")
+                            .style("font-size", function (d) { return d.size + "px"; })
+                            .style("fill", function (d, i) { return color(i); })
+                            .attr("transform", function (d) {
+                                return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+                            })
+                            .text(function (d) { return d.text; });
+                    }
+                });
+            }
+
+            var PopUpContent2 = function (feature) {
+                return '<div>Name: ' + feature.properties.name +
+                    '<br /> Address: ' + feature.properties.address + '<br />Stars: '
+                    //+ Adding a picture that's done alrdy
+                    //Add a section of html code that runs the wordcloud generating function.
+                    //HTML Wrapper which calls a Python Script to run a word cloud --> HTML --> JS --> Python
+                    + feature.properties.stars + '</div>' +
+                    '<p> —————————————————————————— <p>'
+            }
+        </script>
+
+
+        <!-- Section for inserting the Tableau Dashboard Overlay-->
+        <div class='tableauPlaceholder' id='viz1637671489980' style='position: relative'><noscript>
+                <a href='#'><img alt='TheStory  '
+                        src='https:&#47;&#47;public.tableau.com&#47;static&#47;images&#47;HG&#47;HGQMC4ZYP&#47;1_rss.png'
+                        style='border: none' />
+                </a></noscript>
+            <object class='tableauViz' style='display:none;'>
+                <param name='host_url' value='https%3A%2F%2Fpublic.tableau.com%2F' />
+                <param name='embed_code_version' value='3' />
+                <param name='path' value='shared&#47;HGQMC4ZYP' />
+                <param name='toolbar' value='yes' />
+                <param name='static_image'
+                    value='https:&#47;&#47;public.tableau.com&#47;static&#47;images&#47;HG&#47;HGQMC4ZYP&#47;1.png' />
+                <param name='animate_transition' value='yes' />
+                <param name='display_static_image' value='yes' />
+                <param name='display_spinner' value='yes' />
+                <param name='display_overlay' value='yes' />
+                <param name='display_count' value='yes' />
+                <param name='language' value='en-US' />
+            </object>
+        </div>
+
+        <script type='text/javascript'>
+            var divElement = document.getElementById('viz1637671489980');
+            var vizElement = divElement.getElementsByTagName('object')[0];
+            vizElement.style.width = '50vw'; vizElement.style.height = '100vh';
+            var scriptElement = document.createElement('script');
+            scriptElement.src = 'https://public.tableau.com/javascripts/api/viz_v1.js';
+            vizElement.parentNode.insertBefore(scriptElement, vizElement);                
+        </script>
+
+        <!-- Section of Menu Controls-->
+
+        <!--div element for the entire dropup menu-->
+        <div class="Filter_Dropdown">
+
+            <!--Pop-Up Content-->
+            <div id="Filters">
+                <div id="Category" class="Option">
+                    Category:&nbsp;<input type="text" name="fname" value="" id='categories_filter' style="border: 0">
+                    <button id="Confirm">Confirm!</button>
+                </div>
+
+
+                <!--Radio Buttons of all are initialized to be checked.-->
+                <div id="Ambience" class="Option">
+                    Ambience:&nbsp;
+                    <input type="radio" name="ambience_radio" class="RadioButton" value='romantic'> Romantic
+                    <input type="radio" name="ambience_radio" class="RadioButton" value='casual'> Casual
+                    <input type="radio" name="ambience_radio" class="RadioButton" value='upscale'> Upscale
+                    <input type="radio" name="ambience_radio" class="RadioButton" value='classy'> Classy
+                    <input type="radio" name="ambience_radio" class="RadioButton" value='intimate'> Intimate
+                    <input type="radio" name="ambience_radio" class="RadioButton" value='hipster'> Hipster
+                    <input type="radio" name="ambience_radio" class="RadioButton" value='touristy'> Touristy
+                    <input type="radio" name="ambience_radio" class="RadioButton" value='divey'> Divey
+                    <input type="radio" name="ambience_radio" class="RadioButton" value='trendy'> Trendy
+                    <input type="radio" name="ambience_radio" class="RadioButton" value='all' checked="checked"> All
+
+                </div>
+                <div id="Music" class="Option">
+                    Music:&nbsp;
+                    <input type="radio" name="music_radio" value='dj' class="RadioButton"> DJ
+                    <input type="radio" name="music_radio" value='background_music' class="RadioButton">
+                    Background&nbsp;Music
+                    <input type="radio" name="music_radio" value='none' class="RadioButton"> No&nbsp;Music
+                    <input type="radio" name="music_radio" value='jukebox' class="RadioButton"> Jukebox
+                    <input type="radio" name="music_radio" value='live' class="RadioButton"> Live
+                    <input type="radio" name="music_radio" value='video' class="RadioButton"> Video
+                    <input type="radio" name="music_radio" value='karaoke' class="RadioButton"> Karaoke
+                    <input type="radio" name="music_radio" value='all' class="RadioButton" checked="checked"> All
+                </div>
+
+                <div id="PriceRange" class="Option">
+                    PriceRange:&nbsp;
+                    <input type="radio" name="PriceRange_radio" value='1' class="RadioButton"> 1
+                    <input type="radio" name="PriceRange_radio" value='2' class="RadioButton"> 2
+                    <input type="radio" name="PriceRange_radio" value='3' class="RadioButton"> 3
+                    <input type="radio" name="PriceRange_radio" value='4' class="RadioButton"> 4
+                    <input type="radio" name="PriceRange_radio" value='all' class="RadioButton" checked="checked"> All
+                </div>
+
+                <div id="Stars" class="Option">
+                    Stars:&nbsp;
+                    <input type="radio" name="stars_radio" value=1.0 class="RadioButton"> 1
+                    <input type="radio" name="stars_radio" value=1.5 class="RadioButton"> 1.5
+                    <input type="radio" name="stars_radio" value=2.0 class="RadioButton"> 2
+                    <input type="radio" name="stars_radio" value=2.5 class="RadioButton"> 2.5
+                    <input type="radio" name="stars_radio" value=3.0 class="RadioButton"> 3
+                    <input type="radio" name="stars_radio" value=3.5 class="RadioButton"> 3.5
+                    <input type="radio" name="stars_radio" value=4.0 class="RadioButton"> 4
+                    <input type="radio" name="stars_radio" value=4.5 class="RadioButton"> 4.5
+                    <input type="radio" name="stars_radio" value=5.0 class="RadioButton"> 5
+                    <input type="radio" name="stars_radio" value='all' class="RadioButton" checked="checked"> All
+                </div>
+
+                <div id="Restaurant Delivery" class="Option">
+                    Restaurant&nbsp;Delivery:&nbsp;
+                    <input type="radio" name="RestaurantsDelivery_radio" value="True" class="RadioButton"> True
+                    <input type="radio" name="RestaurantsDelivery_radio" value="False" class="RadioButton"> False
+                    <input type="radio" name="RestaurantsDelivery_radio" value='all' class="RadioButton"
+                        checked="checked"> All
+                </div>
+                <div id="Good For Kids" class="Option">
+                    Good&nbsp;For&nbsp;Kids:&nbsp;
+                    <input type="radio" name="GoodForKids_radio" value="True" class="RadioButton"> True
+                    <input type="radio" name="GoodForKids_radio" value="False" class="RadioButton"> False
+                    <input type="radio" name="GoodForKids_radio" value='all' class="RadioButton" checked="checked"> All
+                </div>
+                <div id="ByAppointmentOnly" class="Option">
+                    By&nbsp;Appointment&nbsp;Only:&nbsp;
+                    <input type="radio" name="ByAppointmentOnly_radio" value="True" class="RadioButton"> True
+                    <input type="radio" name="ByAppointmentOnly_radio" value="False" class="RadioButton"> False
+                    <input type="radio" name="ByAppointmentOnly_radio" value='all' class="RadioButton"
+                        checked="checked"> All
+                </div>
+
+
+            </div>
+            <!--Button to Open Menu-->
+            <div id="Button">
+                <button class="Button" onclick="ShowMenu()">Filter Menu</button>
+            </div>
+
+        </div>
+
+        <!-- JavaScript to control showing Filter Menus-->
+        <script>
+            function ShowMenu() {
+                var Filters = document.getElementById("Filters");
+                if (Filters.style.display === "none") {
+                    Filters.style.display = "block";
+                }
+                else {
+                    Filters.style.display = "none";
+                }
+
+            }
+        </script>
+
+    </div>
 </body>
 
-
 </html>
+
+
+<!-- Style Section for all the parts-->
+<!--Styling Section-->
+<style>
+    html,
+    body {
+        height: 100%;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    #container {
+        display: flex;
+    }
+
+    #Filters {
+        display: none;
+    }
+
+    .Filter_Dropdown {
+        position: absolute;
+        bottom: 0vh;
+        left: 0vw;
+        margin-left: 10px;
+        margin-bottom: 10px;
+        z-index: 2000;
+
+    }
+
+    #Confirm {
+        appearance: none;
+        background-color: #FAFBFC;
+        border: 1px solid rgba(27, 31, 35, 0.15);
+        border-radius: 6px;
+        box-shadow: rgba(27, 31, 35, 0.04) 0 1px 0, rgba(255, 255, 255, 0.25) 0 1px 0 inset;
+        box-sizing: border-box;
+        color: #24292E;
+        cursor: pointer;
+        font-family: -apple-system, system-ui, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+        font-size: 10px;
+        font-weight: 500;
+        line-height: 20px;
+        list-style: none;
+        padding: 3px 3px;
+        position: relative;
+
+        transition: background-color 0.2s cubic-bezier(0.3, 0, 0.5, 1);
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: manipulation;
+        vertical-align: middle;
+        white-space: nowrap;
+        word-wrap: break-word;
+    }
+
+    .Button {
+        appearance: none;
+        background-color: #FAFBFC;
+        border: 1px solid rgba(27, 31, 35, 0.15);
+        border-radius: 6px;
+        box-shadow: rgba(27, 31, 35, 0.04) 0 1px 0, rgba(255, 255, 255, 0.25) 0 1px 0 inset;
+        box-sizing: border-box;
+        color: #24292E;
+        cursor: pointer;
+        font-family: -apple-system, system-ui, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 20px;
+        list-style: none;
+        padding: 6px 16px;
+        position: relative;
+
+        transition: background-color 0.2s cubic-bezier(0.3, 0, 0.5, 1);
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: manipulation;
+        vertical-align: middle;
+        white-space: nowrap;
+        word-wrap: break-word;
+    }
+
+    .Button:hover {
+        background-color: #F3F4F6;
+        text-decoration: none;
+        transition-duration: 0.1s;
+    }
+
+    .Option {
+        background-color: #FAFBFC;
+        border: 1px solid rgba(27, 31, 35, 0.15);
+        border-radius: 6px;
+        box-shadow: rgba(27, 31, 35, 0.04) 0 1px 0, rgba(255, 255, 255, 0.25) 0 1px 0 inset;
+        width: fit-content;
+        font-size: 10px;
+        font-weight: 500;
+        line-height: 20px;
+        padding: 6px 16px;
+        position: relative;
+        font-family: -apple-system, system-ui, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+</style>
