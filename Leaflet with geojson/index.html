@@ -210,31 +210,31 @@
             //Function prototype for obtaining colours, credit to Siyuan
             var Getcolor = function (feature) {
                 if (feature.properties.categories.includes('Mexican')) {
-                    return 'black'
-                }
-                else if (feature.properties.categories.includes('Italian')) {
-                    return '#3498DB'//blue
-                }
-                else if (feature.properties.categories.includes('Chinese')) {
-                    return '#E74C3C'//red
-                }
-                else if (feature.properties.categories.includes('Indian')) {
-                    return 'yellow'
-                }
-                else if (feature.properties.categories.includes('Sushi') || feature.properties.categories.includes('Japnese')) {
-                    return '#FADBD8'//pink
-                }
-                else if (feature.properties.categories.includes('Middle Eastern')) {
-                    return '#7E5109'//brown
-                }
-                else if (feature.properties.categories.includes('French')) {
-                    return '#76448A'//purple
-                }
-                else if (feature.properties.categories.includes('Korean')) {
-                    return '#1ABC9C'//green
-                }
+                return 'black'
+            }
+            else if (feature.properties.categories.includes('Italian')) {
+                return '#3498DB'//blue
+            }
+            else if (feature.properties.categories.includes('Chinese')) {
+                return '#E74C3C'//red
+            }
+            else if (feature.properties.categories.includes('Indian')) {
+                return 'yellow'
+            }
+            else if (feature.properties.categories.includes('Sushi') || feature.properties.categories.includes('Japnese')) {
+                return '#F1C232'//orange
+            }
+            else if (feature.properties.categories.includes('Middle Eastern')) {
+                return '#7E5109'//brown
+            }
+            else if (feature.properties.categories.includes('French')) {
+                return '#76448A'//purple
+            }
+            else if (feature.properties.categories.includes('Korean')) {
+                return '#1ABC9C'//green
+            }
 
-                else { return 'grey' }
+            else { return 'grey' }
             }
 
             //Function prototype to generate
